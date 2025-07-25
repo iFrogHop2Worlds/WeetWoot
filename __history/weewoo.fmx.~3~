@@ -1,0 +1,19 @@
+object WeetWoot: TWeetWoot
+  Left = 0
+  Top = 0
+  Caption = 'WeetWoot'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnActivate = FormCreate
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object GameTimer: TTimer
+    Interval = 2
+    OnTimer = FormCreate
+    Left = 304
+    Top = 224
+  end
+end

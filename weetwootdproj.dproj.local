@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.522,C:\source\Project1.dproj=C:\source\weetwootdproj.dproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.552,=C:\source\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.192,=C:\source\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.917,C:\source\Project1.dproj=C:\source\Project1.dproj</Transaction>
+    <Transaction>2025-07-24 20:47:44.409,C:\source\weewoo.pas=C:\source\Unit2.pas</Transaction>
+    <Transaction>2025-07-24 20:47:44.409,C:\source\weewoo.fmx=C:\source\Unit2.fmx</Transaction>
+  </Transactions>
+</BorlandProject>

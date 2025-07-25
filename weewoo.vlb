@@ -1,0 +1,13 @@
+﻿[GameTimer]
+Coordinates=0,-10,82,36
+Visible=True
+LayerNames=NewLayer0
+
+[]
+Coordinates=101,1,91,36
+
+[Module Settings]
+ModelLayerNames=NewLayer0
+ActiveLayerNames=NewLayer0
+EditingLayerName=NewLayer0
+
