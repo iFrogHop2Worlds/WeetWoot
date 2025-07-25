@@ -1,0 +1,15 @@
+program weetwootdproj;
+
+uses
+  System.StartUpCopy,
+  FMX.Forms,
+  weewoo in 'weewoo.pas' {WeetWoot},
+  ClockLabel2 in 'ClockLabel2.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.CreateForm(TWeetWoot, WeetWoot);
+  Application.Run;
+end.

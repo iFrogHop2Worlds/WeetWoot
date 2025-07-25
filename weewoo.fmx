@@ -9,9 +9,10 @@ object WeetWoot: TWeetWoot
   FormFactor.Devices = [Desktop]
   OnActivate = FormCreate
   OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
+  OnKeyUp = FormKeyUp
   DesignerMasterStyle = 0
   object GameTimer: TTimer
-    Interval = 1
     OnTimer = FormCreate
     Left = 304
     Top = 224

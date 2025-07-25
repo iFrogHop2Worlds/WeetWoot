@@ -1,0 +1,36 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{A2E78949-173A-4AE1-AD8D-B1E454D0B406}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="weetwootdproj.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="weetwootdproj">
+        <MSBuild Projects="weetwootdproj.dproj"/>
+    </Target>
+    <Target Name="weetwootdproj:Clean">
+        <MSBuild Projects="weetwootdproj.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="weetwootdproj:Make">
+        <MSBuild Projects="weetwootdproj.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="weetwootdproj"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="weetwootdproj:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="weetwootdproj:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
