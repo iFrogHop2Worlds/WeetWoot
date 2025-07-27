@@ -6,10 +6,10 @@
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
-        <ProjectName Condition="'$(ProjectName)'==''">weetwootdproj</ProjectName>
         <TargetedPlatforms>167955</TargetedPlatforms>
         <AppType>Application</AppType>
         <MainSource>weetwootdproj.dpr</MainSource>
+        <ProjectName Condition="'$(ProjectName)'==''">weetwootdproj</ProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
         <Base>true</Base>

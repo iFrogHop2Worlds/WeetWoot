@@ -6,21 +6,25 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   System.Generics.Collections, System.Math.Vectors, System.Math,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
-  FMX.Utils, Winapi.Windows;
+  FMX.Utils, Winapi.Windows, FMX.Ani;
 
 type
   TWeetWoot = class(TForm)
     GameTimer: TTimer;
+    ScoreText: TText;
+    GradientAnimation1: TGradientAnimation;
     procedure FormCreate(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
     procedure FormKeyUp(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
     procedure GameTimerTimer(Sender: TObject);
+    //procedure ScoreTextClick(Sender: TObject);
 
     type
       TPlayer = record
         Rect: TRectangle;
         Velocity: TVector;
         IsOnGround: Boolean;
+        CanJump: TDateTime;
         CanWallJump: Boolean;
         WallJumpSide: TAlignLayout;
       end;
@@ -31,19 +35,22 @@ type
         IsGroundBlock: Boolean;
       end;
 
+
   private
     FPlayer: TPlayer;
     FBlocks: TObjectList<TBlock>;
     FKeys: TDictionary<Word, Boolean>;
     FGameTime: Single;
-
+    FScore: Integer;
+    FStartTime: Single;
+    FSpawnRangeTimer: Integer;
+    FPanSpeed: Double;
     const
       Gravity = 0.2;
-      PlayerSpeed = 4.0;
-      JumpForce = -12.0;
-      WallJumpHorizontalForce = 6.0;
-      PanSpeed = 0.0; // simulating camera moving up
-      BlockInitialFallSpeed = 0.5; // Initial speed for newly spawned blocks
+      PlayerSpeed = 5.0;
+      JumpForce = -9.0;
+      WallJumpHorizontalForce = 25.0;
+      BlockInitialFallSpeed = 0.02;
 
     function IsKeyDown(Key: Word): Boolean;
     procedure UpdatePlayer;
@@ -64,13 +71,8 @@ procedure TWeetWoot.FormCreate(Sender: TObject);
 var
   GroundBlock: TBlock;
 begin
-  // Initialize keyboard state dictionary
   FKeys := TDictionary<Word, Boolean>.Create;
-
-  // Initialize block list
   FBlocks := TObjectList<TBlock>.Create;
-
-  // Create Player
   FPlayer.Rect := TRectangle.Create(Self);
   FPlayer.Rect.Parent := Self;
   FPlayer.Rect.Fill.Color := TAlphaColors.Black;
@@ -79,57 +81,76 @@ begin
   FPlayer.Rect.Position.X := (Self.Width - FPlayer.Rect.Width) / 2;
   FPlayer.Rect.Position.Y := Self.Height - FPlayer.Rect.Height - 50;
   FPlayer.Velocity := TVector.Create(0, 0);
-  FPlayer.IsOnGround := False; // Player starts airborne, will fall onto ground block
+  FPlayer.IsOnGround := False;
   FPlayer.CanWallJump := False;
   FGameTime := 0;
+  FSpawnRangeTimer := 16;
+  FPanSpeed := 0;
 
-  // --- Create Initial Ground Block ---
+
+  // --- Create Ground Block ---
   GroundBlock := TBlock.Create;
   GroundBlock.Rect := TRectangle.Create(Self);
   GroundBlock.Rect.Parent := Self;
-  GroundBlock.Rect.Fill.Color := TAlphaColors.Sienna; // A different color for ground
-  GroundBlock.Rect.Width := Self.Width; // Full width of the screen
-  GroundBlock.Rect.Height := 50; // Thicker ground
+  GroundBlock.Rect.Fill.Color := TAlphaColors.Whitesmoke;
+  GroundBlock.Rect.Width := Self.Width;
+  GroundBlock.Rect.Height := 50;
   GroundBlock.Rect.Position.X := 0;
   GroundBlock.Rect.Position.Y := Self.Height - GroundBlock.Rect.Height;
-  GroundBlock.VelocityY := 0; // The ground block does not fall
+  GroundBlock.VelocityY := 0;
   GroundBlock.IsGroundBlock := True;
   FBlocks.Add(GroundBlock);
-  // --- End Initial Ground Block ---
 
   GameTimer.OnTimer := GameTimerTimer;
-  GameTimer.Interval := 16; // A good interval for ~60 FPS (1000ms / 60 frames = ~16.67ms)
+  GameTimer.Interval := 18;
   GameTimer.Enabled := True;
+
 end;
 
 procedure TWeetWoot.FormKeyDown(Sender: TObject; var Key: Word;
   var KeyChar: Char; Shift: TShiftState);
 begin
   FKeys.AddOrSetValue(Key, True);
-  OutputDebugString(PChar('Key Down: ' + IntToStr(Key) + #13#10)); // Debugging key presses
+  OutputDebugString(PChar('Key Down: ' + IntToStr(Key) + #13#10));
 end;
 
 procedure TWeetWoot.FormKeyUp(Sender: TObject; var Key: Word; var KeyChar: Char;
   Shift: TShiftState);
 begin
   FKeys.AddOrSetValue(Key, False);
-  OutputDebugString(PChar('Key Up: ' + IntToStr(Key) + #13#10)); // Debugging key releases
+  OutputDebugString(PChar('Key Up: ' + IntToStr(Key) + #13#10));
 end;
 
-// Helper function to check key state
 function TWeetWoot.IsKeyDown(Key: Word): Boolean;
 begin
   Result := FKeys.TryGetValue(Key, Result) and Result;
-  //Result := FKeys.ContainsKey(Key) and FKeys.Items[Key];
 end;
+
+//procedure TWeetWoot.ScoreTextClick(Sender: TObject);
+//begin
+//  ShowMessage('Woo');
+//end;
+
+
 
 procedure TWeetWoot.GameTimerTimer(Sender: TObject);
 begin
-  // OutputDebugString('GameTimerTimer fired!'#13#10); // Can be removed if too noisy
+  if FBlocks.Count > 30
+  then begin
+  FPanSpeed := 1;
+//  FSpawnRangeTimer := 160;
+  end;
+
+//  if FBlocks.Count > 90
+//  then self.PanSpeed := 2;
+
   UpdatePlayer;
   UpdateBlocks;
   UpdateWorld;
-  // OutputDebugString('GameTimerTimer ran all 3 main funcs!'#13#10); // Can be removed if too noisy
+  FScore := FScore + 1;
+  ScoreText.Text := 'Score: ' + IntToStr(FScore);
+
+  OutputDebugString(PChar('Score: ' + FScore.ToString + #13#10));
 end;
 
 procedure TWeetWoot.UpdatePlayer;
@@ -139,7 +160,7 @@ var
   CollidedWithWall: Boolean;
   tempPlayerY: Single; // Store player's Y position before X collision check
 begin
-  // --- Horizontal Movement ---
+
   if IsKeyDown(Ord(37)) then // Left
     FPlayer.Velocity.X := -PlayerSpeed
   else if IsKeyDown(Ord(39)) then // Right
@@ -147,35 +168,38 @@ begin
   else
     FPlayer.Velocity.X := 0;
 
-  // --- Apply Gravity (always applies, even if on ground, to detect falling off edge) ---
+  // --- Applying Gravity ---
   FPlayer.Velocity.Y := FPlayer.Velocity.Y + Gravity;
 
   // --- Jumping ---
-  if IsKeyDown(38) then
+  var t := GetTime;
+  if IsKeyDown(38) and (t > FPlayer.CanJump) then
   begin
     if FPlayer.IsOnGround then // Normal Jump
     begin
       FPlayer.Velocity.Y := JumpForce;
-      FPlayer.IsOnGround := False; // No longer on ground after jumping
+      FPlayer.IsOnGround := False;
     end
     else if FPlayer.CanWallJump then // Wall Jump
     begin
-      FPlayer.Velocity.Y := JumpForce; // Jump up
       if FPlayer.WallJumpSide = TAlignLayout.Left then
-        FPlayer.Velocity.X := WallJumpHorizontalForce // Push right
+        FPlayer.Velocity.X := -WallJumpHorizontalForce
       else
-        FPlayer.Velocity.X := -WallJumpHorizontalForce; // Push left
-      FPlayer.CanWallJump := False; // Can only wall jump once per touch
+        FPlayer.Velocity.X := WallJumpHorizontalForce;
+
+      FPlayer.Velocity.Y := JumpForce;
+      FPlayer.CanWallJump := False;
     end;
+    FPlayer.CanJump := GetTime + 0.0000000000000005;
   end;
 
   // --- Power Drop ---
   if IsKeyDown(Ord(40)) and not FPlayer.IsOnGround then
   begin
-    FPlayer.Velocity.Y := FPlayer.Velocity.Y + Gravity * 2; // Extra gravity
+    FPlayer.Velocity.Y := FPlayer.Velocity.Y + Gravity * 10;
   end;
 
-  // Limit player fall speed (optional, but good for control)
+  // Limit player fall speed
   if FPlayer.Velocity.Y > 15 then FPlayer.Velocity.Y := 15;
 
    // Reset collision states for this frame
@@ -217,14 +241,14 @@ begin
   NextPos := FPlayer.Rect.BoundsRect; // Get player's current position (possibly Y-adjusted)
   NextPos.Offset(FPlayer.Velocity.X, 0); // Project player's X movement
 
-  for CollidedBlock in FBlocks do // Iterate through ALL blocks
+  for CollidedBlock in FBlocks do
   begin
     if CollidedBlock.IsGroundBlock and FPlayer.IsOnGround then
     begin
       Continue;
     end;
 
-    // Now, check for actual wall-like collisions with other blocks or non-ground parts
+    // check for wall collisions
     if NextPos.IntersectsWith(CollidedBlock.Rect.BoundsRect) then
     begin
       CollidedWithWall := True;
@@ -248,13 +272,10 @@ begin
   if FPlayer.Velocity.X <> 0 then
     FPlayer.Rect.Position.X := FPlayer.Rect.Position.X + FPlayer.Velocity.X;
 
-
-  // A wall-jump is possible if we are touching a wall and not on the ground
-  // (FPlayer.CanWallJump is reset at start, then set here if true based on actual collision)
   if CollidedWithWall and not FPlayer.IsOnGround then
     FPlayer.CanWallJump := True;
 
-  // --- Screen Boundaries (for player horizontal) ---
+  // --- Screen Boundaries (for player horizontal todo wrap around..) ---
   if FPlayer.Rect.Position.X < 0 then FPlayer.Rect.Position.X := 0;
   if FPlayer.Rect.Position.X > Self.Width - FPlayer.Rect.Width then
     FPlayer.Rect.Position.X := Self.Width - FPlayer.Rect.Width;
@@ -277,76 +298,62 @@ begin
   Crushed := False;
 
   // --- Spawn New Blocks ---
-  // Spawn a new block approximately every second (60 frames * 16ms/frame = ~1 second)
-  if RandomRange(0, 60) = 0 then // This triggers approximately every 61 frames (0-60)
+  if RandomRange(0, FSpawnRangeTimer) = 0 then
   begin
-    var block_dimension := RandomRange(60, 120);
+    var block_dimension := RandomRange(80, 160);
     var NewBlock := TBlock.Create;
     NewBlock.Rect := TRectangle.Create(Self);
     NewBlock.Rect.Parent := Self;
     NewBlock.Rect.Fill.Color := TAlphaColors.Darkgray;
     NewBlock.Rect.Width := block_dimension;
     NewBlock.Rect.Height := block_dimension;
-    NewBlock.Rect.Position.X := RandomRange(0, Round(Self.Width - NewBlock.Rect.Width));
-    NewBlock.Rect.Position.Y := -NewBlock.Rect.Height; // Start just off-screen at the top
-    NewBlock.VelocityY := BlockInitialFallSpeed; // Give new blocks an initial falling velocity
+    NewBlock.Rect.Position.X := RandomRange(0, Round(1920 - NewBlock.Rect.Width));
+    NewBlock.Rect.Position.Y := -NewBlock.Rect.Height;
+    NewBlock.VelocityY := BlockInitialFallSpeed;
     FBlocks.Add(NewBlock);
   end;
 
-  // --- Update Existing Blocks and Handle Collisions ---
+  // --- Update Blocks and Handle Collisions ---
   for i := FBlocks.Count - 1 downto 0 do // Iterate backwards for safe deletion
   begin
     Block := FBlocks[i];
 
-    // Blocks apply their own gravity (unless it's the static ground block)
-    if Block.VelocityY <> 0 then // Only apply gravity if block is currently falling/moving
-      Block.VelocityY := Block.VelocityY + Gravity;
+    if Block.VelocityY <> 0 then
+      Block.VelocityY := Block.VelocityY + Gravity ; //I think maybe we need to increase block velocity with FPanSpeed
 
-    // Limit block falling speed (optional, but good for control)
-    if Block.VelocityY > 10 then Block.VelocityY := 10; // Max fall speed for blocks
 
-    // Calculate next potential position for the current block
+    if Block.VelocityY = 69 then Block.DisposeOf;
+
     BlockNextPos := Block.Rect.BoundsRect;
-    BlockNextPos.Offset(0, Block.VelocityY);
+    BlockNextPos.Offset(1, Block.VelocityY);
 
-    // CRITICAL FIX 2 & 3: Check for collision with OTHER blocks (including the ground block)
     var BlockLanded: Boolean := False;
     for OtherBlock in FBlocks do
     begin
-      // Don't check collision with itself, and only check if the other block is not the one falling through
       if (Block = OtherBlock) then
-        Continue; // Skip self-collision
+        Continue;
 
-      // Check if the current block (moving) would intersect with any other static/landed block
       if BlockNextPos.IntersectsWith(OtherBlock.Rect.BoundsRect) then
       begin
-        // If the block is moving down and would hit another block
         if Block.VelocityY > 0 then // Only consider downward movement for landing
         begin
-          Block.VelocityY := 0; // Stop falling
-          // Snap block to just on top of the OtherBlock
+          Block.VelocityY := 0;
+          // place block on top of the other block
           Block.Rect.Position.Y := OtherBlock.Rect.Position.Y - Block.Rect.Height;
           BlockLanded := True;
         end;
-        // If blocks could be moving up, you'd need that logic too for hitting ceilings.
-        // For stacking blocks, a simple downward collision check is sufficient.
-        Break; // Once it hits one block, it stops for this axis.
+        Break;
       end;
     end;
 
-    // Apply block's vertical movement IF it hasn't landed on something
     if not BlockLanded then
       Block.Rect.Position.Y := Block.Rect.Position.Y + Block.VelocityY;
 
-
-    // Check for collision with player (crush)
-    // This logic is a simple check: if the player's rectangle overlaps the block's rectangle AND
-    // the block's top is above the player's top AND the block is moving downwards.
-    // A more precise crushing check would involve checking if the block *moved into* the player from above.
     if FPlayer.Rect.BoundsRect.IntersectsWith(Block.Rect.BoundsRect) then
     begin
-      // If the block is falling and its top is above or nearly at the player's top, it might be crushing
-      if (Block.VelocityY > 0) and (FPlayer.Rect.Position.Y >= Block.Rect.Position.Y + Block.Rect.Height - 5) then // + Block.Rect.Height - 5 to check bottom part
+      if (Block.VelocityY >= 0)
+      and (FPlayer.Rect.Position.Y >= Block.Rect.Position.Y + Block.Rect.Height - 20)
+      then
         Crushed := True;
     end;
 
@@ -370,10 +377,10 @@ var
 begin
   // --- Pan the View ---
   // Move the player and all blocks down to simulate the camera moving up
-  FPlayer.Rect.Position.Y := FPlayer.Rect.Position.Y + PanSpeed;
+  FPlayer.Rect.Position.Y := FPlayer.Rect.Position.Y + FPanSpeed;
   for Block in FBlocks do
   begin
-    Block.Rect.Position.Y := Block.Rect.Position.Y + PanSpeed;
+    Block.Rect.Position.Y := Block.Rect.Position.Y + FPanSpeed;
   end;
 
   // --- Update Background (commented out as per your previous code) ---

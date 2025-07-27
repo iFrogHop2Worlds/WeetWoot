@@ -1,9 +1,10 @@
 object WeetWoot: TWeetWoot
   Left = 0
   Top = 0
+  BorderStyle = None
   Caption = 'WeetWoot'
-  ClientHeight = 480
-  ClientWidth = 640
+  ClientHeight = 621
+  ClientWidth = 1032
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -16,5 +17,35 @@ object WeetWoot: TWeetWoot
     OnTimer = FormCreate
     Left = 304
     Top = 224
+  end
+  object ScoreText: TText
+    Locked = True
+    Position.X = -208.000000000000000000
+    Size.Width = 505.000000000000000000
+    Size.Height = 65.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Score: 0'
+  end
+  object GradientAnimation1: TGradientAnimation
+    AnimationType = InOut
+    Duration = 0.200000002980232200
+    StartValue.Points = <
+      item
+        Color = claBlack
+        Offset = 0.000000000000000000
+      end
+      item
+        Color = claWhite
+        Offset = 1.000000000000000000
+      end>
+    StopValue.Points = <
+      item
+        Color = claBlack
+        Offset = 0.000000000000000000
+      end
+      item
+        Color = claWhite
+        Offset = 1.000000000000000000
+      end>
   end
 end
