@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>1899-12-30 00:00:00.000.409,C:\source\Unit2.pas=C:\source\weewoo.pas</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.865,C:\source\weetwoot\ClockLabel.pas=C:\source\ClockLabel.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.865,C:\source\ClockLabel.pas=C:\source\weetwoot\ClockLabel.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.552,=C:\source\Unit2.pas</Transaction>
     <Transaction>1899-12-30 00:00:00.000.886,=C:\source\weetwoot\ClockLabel.pas</Transaction>
     <Transaction>1899-12-30 00:00:00.000.192,=C:\source\Unit1.pas</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.552,=C:\source\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.352,C:\source\weetwoot\ClockLabel2.pas=C:\source\ClockLabel.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.409,C:\source\weewoo.pas=C:\source\Unit2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.409,C:\source\weewoo.fmx=C:\source\Unit2.fmx</Transaction>
     <Transaction>1899-12-30 00:00:00.000.917,C:\source\Project1.dproj=C:\source\Project1.dproj</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.409,C:\source\Unit2.fmx=C:\source\weewoo.fmx</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.522,C:\source\weetwootdproj.dproj=C:\source\Project1.dproj</Transaction>
-    <Transaction>1899-12-30 00:00:00.000.352,C:\source\ClockLabel.pas=C:\source\weetwoot\ClockLabel2.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.522,C:\source\Project1.dproj=C:\source\weetwootdproj.dproj</Transaction>
   </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
     <File Path="activity-1.7.2.dex.jar"/>

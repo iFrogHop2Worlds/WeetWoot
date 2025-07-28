@@ -15,8 +15,8 @@ object WeetWoot: TWeetWoot
   DesignerMasterStyle = 0
   object GameTimer: TTimer
     OnTimer = FormCreate
-    Left = 304
-    Top = 224
+    Left = 896
+    Top = 16
   end
   object ScoreText: TText
     Locked = True
@@ -26,26 +26,19 @@ object WeetWoot: TWeetWoot
     Size.PlatformDefault = False
     Text = 'Score: 0'
   end
-  object GradientAnimation1: TGradientAnimation
-    AnimationType = InOut
-    Duration = 0.200000002980232200
-    StartValue.Points = <
-      item
-        Color = claBlack
-        Offset = 0.000000000000000000
-      end
-      item
-        Color = claWhite
-        Offset = 1.000000000000000000
-      end>
-    StopValue.Points = <
-      item
-        Color = claBlack
-        Offset = 0.000000000000000000
-      end
-      item
-        Color = claWhite
-        Offset = 1.000000000000000000
-      end>
+  object GameMenu: TPopupMenu
+    Left = 480
+    Top = 272
+    object Play: TMenuItem
+      Text = 'Play'
+      OnClick = MenuItemPlay
+    end
+    object Quit: TMenuItem
+      Text = 'Quit'
+      OnClick = MenuItemQuit
+    end
+    object Scores: TMenuItem
+      Locked = True
+    end
   end
 end
