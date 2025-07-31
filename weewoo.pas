@@ -6,7 +6,8 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   System.Generics.Collections, System.Math.Vectors, System.Math,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Objects,
-  FMX.Utils, Winapi.Windows, FMX.Ani, FMX.Menus;
+  FMX.Utils, Winapi.Windows, FMX.Ani, FMX.Menus, FMX.Controls.Presentation,
+  FMX.StdCtrls, FMX.Media;
 
 type
   TWeetWoot = class(TForm)
@@ -16,13 +17,17 @@ type
     Play: TMenuItem;
     Quit: TMenuItem;
     Scores: TMenuItem;
+    SoundButton: TButton;
+    Music: TMediaPlayer;
+    Background: TBrushObject;
     procedure FormCreate(Sender: TObject);
     procedure MenuItemQuit(Sender: TObject);
     procedure MenuItemPlay(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
     procedure FormKeyUp(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
     procedure GameTimerTimer(Sender: TObject);
-    //procedure ScoreTextClick(Sender: TObject);
+    procedure ToggleMusic(Sender: TObject);
+    procedure ResetGame;
 
     type
       TPlayer = record
@@ -49,11 +54,12 @@ type
     FScore: Integer;
     FStartTime: Single;
     FSpawnRangeTimer: Integer;
+    FMusicBool: Boolean;
 
     const
-      Gravity = 0.2;
-      PlayerSpeed = 5.0;
-      JumpForce = -9.0;
+      Gravity = 0.9;
+      PlayerSpeed = 10.0;
+      JumpForce = -18.0;
       WallJumpHorizontalForce = 32.0;
       BlockInitialFallSpeed = 0.02;
 
@@ -69,8 +75,68 @@ var
   WeetWoot: TWeetWoot;
 
 implementation
-
 {$R *.fmx}
+
+procedure TWeetWoot.ResetGame;
+  var
+    GroundBlock: TBlock;
+    i: Integer;
+  begin
+    FGameTime := 0;
+    FScore := 0;
+    ScoreText.Text := 'Score: 0';
+    FSpawnRangeTimer := 50;
+    Self.PanningSpeed := 0;
+    FKeys.Clear;
+
+    for i := Self.ChildrenCount - 1 downto 0 do
+    begin
+      if (Self.Children[i] is TRectangle) and (Self.Children[i] <> FPlayer.Rect) then
+      begin
+        Self.Children[i].Destroy;
+      end;
+    end;
+
+    FBlocks.Destroy;
+
+    FKeys := TDictionary<Word, Boolean>.Create;
+    FBlocks := TObjectList<TBlock>.Create;
+    FPlayer.Rect := TRectangle.Create(Self);
+    FPlayer.Rect.Parent := Self;
+    FPlayer.Rect.Fill.Color := TAlphaColors.white;
+    FPlayer.Rect.Width := 20;
+    FPlayer.Rect.Height := 20;
+    FPlayer.Rect.Position.X := (Self.Width - FPlayer.Rect.Width) / 2;
+    FPlayer.Rect.Position.Y := Self.Height/2;
+    FPlayer.Velocity := TVector.Create(0, 0);
+    FPlayer.IsOnGround := False;
+    FPlayer.CanWallJump := False;
+    FGameTime := 0;
+    FSpawnRangeTimer := 50;
+    self.PanningSpeed := 0;
+
+    GroundBlock := TBlock.Create;
+    GroundBlock.Rect := TRectangle.Create(Self);
+    GroundBlock.Rect.Parent := Self;
+    GroundBlock.Rect.Fill.Color := TAlphaColors.WhiteSmoke;
+    GroundBlock.Rect.Width := Self.Width;
+    GroundBlock.Rect.Height := 50;
+    GroundBlock.Rect.Position.X := 0;
+    GroundBlock.Rect.Position.Y := Self.Height - GroundBlock.Rect.Height;
+    GroundBlock.VelocityY := 0;
+    GroundBlock.IsGroundBlock := True;
+    FBlocks.Add(GroundBlock);
+
+    GameTimer.OnTimer := GameTimerTimer;
+    GameTimer.Interval := 16;
+    GameTimer.Enabled := True;
+
+    if FMusicBool then
+    begin
+      Music.Stop; // restart
+      Music.Play;
+    end;
+  end;
 
 procedure TWeetWoot.FormCreate(Sender: TObject);
   var GroundBlock: TBlock;
@@ -79,20 +145,18 @@ procedure TWeetWoot.FormCreate(Sender: TObject);
     FBlocks := TObjectList<TBlock>.Create;
     FPlayer.Rect := TRectangle.Create(Self);
     FPlayer.Rect.Parent := Self;
-    FPlayer.Rect.Fill.Color := TAlphaColors.Black;
+    FPlayer.Rect.Fill.Color := TAlphaColors.Aquamarine;
     FPlayer.Rect.Width := 20;
     FPlayer.Rect.Height := 20;
     FPlayer.Rect.Position.X := (Self.Width - FPlayer.Rect.Width) / 2;
-    FPlayer.Rect.Position.Y := Self.Height - FPlayer.Rect.Height - 50;
+    FPlayer.Rect.Position.Y := Self.Height/2;
     FPlayer.Velocity := TVector.Create(0, 0);
     FPlayer.IsOnGround := False;
     FPlayer.CanWallJump := False;
     FGameTime := 0;
     FSpawnRangeTimer := 50;
     self.PanningSpeed := 0;
-    ScoreText.BringToFront;
 
-    // --- Create Ground Block ---
     GroundBlock := TBlock.Create;
     GroundBlock.Rect := TRectangle.Create(Self);
     GroundBlock.Rect.Parent := Self;
@@ -106,10 +170,28 @@ procedure TWeetWoot.FormCreate(Sender: TObject);
     FBlocks.Add(GroundBlock);
 
     GameTimer.OnTimer := GameTimerTimer;
-    GameTimer.Interval := 18;
+    GameTimer.Interval := 16;
     GameTimer.Enabled := True;
+    FMusicBool := True;
+    Music.FileName := 'C:\source\weetwoot\retro.mp3';
+    Music.Play;
   end;
 
+
+procedure TWeetWoot.ToggleMusic(Sender: TObject);
+  begin
+    if FMusicBool then begin
+      Music.Stop;
+      FMusicBool := False;
+    end;
+
+
+    if FMusicBool = False then begin
+      Music.Play;
+      FMusicBool := True;
+    end;
+
+  end;
 
 procedure TweetWoot.MenuItemQuit(Sender: TObject);
   begin
@@ -119,8 +201,7 @@ procedure TweetWoot.MenuItemQuit(Sender: TObject);
 
 procedure TweetWoot.MenuItemPlay(Sender: TObject);
   begin
-    // todo
-    self.FormCreate(Sender);
+    ResetGame;
   end;
 
 
@@ -145,35 +226,23 @@ procedure TWeetWoot.FormKeyUp(
     FKeys.AddOrSetValue(Key, False);
   end;
 
+
 function TWeetWoot.IsKeyDown(Key: Word): Boolean;
   begin
     Result := FKeys.TryGetValue(Key, Result) and Result;
   end;
 
 
-//procedure TWeetWoot.ScoreTextClick(Sender: TObject);
-//begin
-//  ShowMessage('Woo');
-//end;
-
-
 procedure TWeetWoot.GameTimerTimer(Sender: TObject);
   begin
-    if FBlocks.Count > 30
-    then begin
-      self.PanningSpeed := 1;
-    end;
-
-    //  if FBlocks.Count > 90
-    //  then self.PanSpeed := 2;
+    if FBlocks.Count > 10 then self.PanningSpeed := 1;
+    if FBlocks.Count > 120 then self.PanningSpeed := 2;
 
     UpdatePlayer;
     UpdateBlocks;
     UpdateWorld;
     FScore := FScore + 1;
     ScoreText.Text := 'Score: ' + IntToStr(FScore);
-
-    OutputDebugString(PChar('Score: ' + FScore.ToString + #13#10));
   end;
 
 
@@ -214,7 +283,7 @@ procedure TWeetWoot.UpdatePlayer;
       FPlayer.CanJump := GetTime + 0.0000000000000005;
     end;
 
-    // --- Power Drop ---
+    // Fast drop
     if IsKeyDown(Ord(40)) and not FPlayer.IsOnGround then
     begin
       FPlayer.Velocity.Y := FPlayer.Velocity.Y + Gravity * 10;
@@ -283,15 +352,16 @@ procedure TWeetWoot.UpdatePlayer;
     if CollidedWithWall and not FPlayer.IsOnGround then
       FPlayer.CanWallJump := True;
 
-    // todo wrap around screen  ..)
-    if FPlayer.Rect.Position.X < 0 then FPlayer.Rect.Position.X := 0;
-
-    if FPlayer.Rect.Position.X > Self.Width - FPlayer.Rect.Width then
+    if FPlayer.Rect.Position.X < 0 then
       FPlayer.Rect.Position.X := Self.Width - FPlayer.Rect.Width;
+
+    if FPlayer.Rect.Position.X > Self.Width - FPlayer.Rect.Width then  FPlayer.Rect.Position.X := 0;
+
 
     if FPlayer.Rect.Position.Y > Self.Height then begin
       GameOver('You fell out of view!');
-      GameMenu.Popup(500, 250);
+      ResetGame;
+      GameMenu.Popup(Self.Width/2, Self.Height/2);
     end;
   end;
 
@@ -314,7 +384,7 @@ procedure TWeetWoot.UpdateBlocks;
       NewBlock.Rect.Fill.Color := TAlphaColors.Darkgray;
       NewBlock.Rect.Width := block_dimension;
       NewBlock.Rect.Height := block_dimension;
-      NewBlock.Rect.Position.X := RandomRange(0, Round(1200 - NewBlock.Rect.Width));
+      NewBlock.Rect.Position.X := RandomRange(0, Round(Self.clientWidth-100 - NewBlock.Rect.Width));
       NewBlock.Rect.Position.Y := -NewBlock.Rect.Height;
       NewBlock.VelocityY := BlockInitialFallSpeed;
       FBlocks.Add(NewBlock);
@@ -360,8 +430,9 @@ procedure TWeetWoot.UpdateBlocks;
     end;
 
     if Crushed then begin
-        GameOver('Ouch.. you were crushed!');
-        GameMenu.Popup(500, 250);
+      GameOver('Ouch.. you were crushed!');
+      ResetGame;
+      GameMenu.Popup(Self.Width/2, Self.Height/2);
     end;
 
   end;
@@ -376,10 +447,52 @@ procedure TWeetWoot.UpdateWorld;
         Block.Rect.Position.Y := Block.Rect.Position.Y + self.PanningSpeed;
     end;
 
-    // background changes color
-    // FGameTime := FGameTime + GameTimer.Interval / 1000.0;
-    // lerpFactor := Min(FGameTime / 120.0, 1.0);
-    Self.Fill.Color := TAlphaColorRec.Whitesmoke; // (TAlphaColors.White, TAlphaColors.Dimgray, lerpFactor);
+
+
+    FPlayer.Rect.Fill.Color := TAlphaColors.White;
+    if FScore < 300 then begin
+      Self.Fill.Color := TAlphaColorRec.Azure;
+    end
+    else if FScore < 1000 then begin
+      Self.Fill.Color := TAlphaColorRec.Cyan;
+    end
+    else if FScore < 3000 then begin
+      Self.Fill.Color := TAlphaColorRec.Darkblue;
+    end
+    else if FScore < 4000 then begin
+      Self.Fill.Color := TAlphaColorRec.Darkcyan;
+    end
+    else if FScore < 5000 then begin
+      Self.Fill.Color := TAlphaColorRec.Darkgoldenrod;
+    end
+    else if FScore < 6000 then begin
+      Self.Fill.Color := TAlphaColorRec.Darkgray;
+    end
+    else if FScore < 7000 then begin
+      Self.Fill.Color := TAlphaColorRec.Darkgreen;
+    end
+    else if FScore < 8000 then begin
+      Self.Fill.Color := TAlphaColorRec.Lightseagreen;
+    end
+    else if FScore < 9000 then begin
+      Self.Fill.Color := TAlphaColorRec.Darkkhaki;
+    end
+    else if FScore < 10000 then begin
+      Self.Fill.Color := TAlphaColorRec.Darkmagenta;
+    end
+    else if FScore < 11000 then begin
+      Self.Fill.Color := TAlphaColorRec.Darkolivegreen;
+    end
+    else if FScore < 12000 then begin
+      Self.Fill.Color := TAlphaColorRec.Darkorange;
+    end
+    else if FScore < 13000 then begin
+      Self.Fill.Color := TAlphaColorRec.Darkorchid;
+    end
+    else if FScore < 14000 then begin
+      Self.Fill.Color := TAlphaColorRec.Darkred;
+    end
+
   end;
 
 procedure TWeetWoot.GameOver(AMessage: string);

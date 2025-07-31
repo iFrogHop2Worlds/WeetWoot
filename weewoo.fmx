@@ -1,10 +1,11 @@
 object WeetWoot: TWeetWoot
   Left = 0
   Top = 0
-  BorderStyle = None
   Caption = 'WeetWoot'
   ClientHeight = 621
   ClientWidth = 1032
+  Fill.Color = xFF2D6DFB
+  Fill.Kind = Solid
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -15,8 +16,8 @@ object WeetWoot: TWeetWoot
   DesignerMasterStyle = 0
   object GameTimer: TTimer
     OnTimer = FormCreate
-    Left = 896
-    Top = 16
+    Left = 960
+    Top = 560
   end
   object ScoreText: TText
     Locked = True
@@ -39,6 +40,27 @@ object WeetWoot: TWeetWoot
     end
     object Scores: TMenuItem
       Locked = True
+      Text = 'Scores'
     end
+  end
+  object SoundButton: TButton
+    Position.X = 936.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 88.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    Text = 'toggle sound'
+    TextSettings.Trimming = None
+    OnClick = ToggleMusic
+  end
+  object Music: TMediaPlayer
+    Left = 928
+    Top = 64
+  end
+  object Background: TBrushObject
+    StyleName = 'Background'
+    Brush.Color = xFF2D6DFB
+    Brush.Kind = Solid
   end
 end

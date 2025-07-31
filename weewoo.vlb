@@ -1,14 +1,35 @@
 ﻿[GameTimer]
-Coordinates=0,-10,71,69
+Coordinates=0,-10,82,80
 Visible=True
 LayerNames=
 ExplicitSubNodes=DesignInfo;Interval
 
 []
-Coordinates=90,1,82,33
+Coordinates=113,163,91,36
 
 [Module Settings]
 ModelLayerNames=
 ActiveLayerNames=
 EditingLayerName=
+
+[Quit]
+Coordinates=101,78,40,36
+
+[Play]
+Coordinates=52,89,40,36
+
+[ScoreText]
+Coordinates=101,1,73,58
+
+[GameMenu]
+Coordinates=212,1,81,36
+
+[Scores]
+Coordinates=212,56,54,36
+
+[Music]
+Coordinates=64,163,48,36
+
+[SoundButton]
+Coordinates=212,111,59,58
 
